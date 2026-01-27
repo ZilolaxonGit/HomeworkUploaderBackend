@@ -141,10 +141,30 @@ class LessonViewSet(viewsets.ModelViewSet):
                 student_data['score'] = rating.score if rating else None
                 submitted_students.append(student_data)
             else:
-                student_data['score'] = 0 if lesson.is_deadline_passed else None
-                not_submitted_students.append(student_data)
+                # If deadline has passed, treat as 0 score and include in submitted list for ranking
+                if lesson.is_deadline_passed:
+                    student_data['score'] = 0
+                    student_data['homework_id'] = None
+                    student_data['submission_url'] = None
+                    student_data['submission_file'] = None
+                    student_data['submitted_at'] = None
+                    student_data['status'] = 'MISSED'
+                    student_data['rating'] = {
+                        'id': None,
+                        'score': 0,
+                        'comment': 'Missed deadline - automatic 0 score',
+                    }
+                    submitted_students.append(student_data)  # Add to submitted list for ranking
+                else:
+                    student_data['score'] = None
+                    not_submitted_students.append(student_data)
 
+        # Sort submitted students by score (highest first), None scores at the end
         submitted_students.sort(key=lambda x: (x['score'] is None, -(x['score'] or 0)))
+
+        # Separate actual submissions from missed deadlines for display purposes
+        actual_submissions = [s for s in submitted_students if s.get('status') != 'MISSED']
+        missed_submissions = [s for s in submitted_students if s.get('status') == 'MISSED']
 
         return Response({
             'lesson': {
@@ -154,9 +174,10 @@ class LessonViewSet(viewsets.ModelViewSet):
                 'is_deadline_passed': lesson.is_deadline_passed,
             },
             'total_students': all_students.count(),
-            'submitted_count': len(submitted_students),
+            'submitted_count': len(actual_submissions),
+            'missed_count': len(missed_submissions),
             'not_submitted_count': len(not_submitted_students),
-            'submitted_students': submitted_students,
+            'submitted_students': submitted_students,  # Includes both actual and missed for ranking
             'not_submitted_students': not_submitted_students,
         })
 

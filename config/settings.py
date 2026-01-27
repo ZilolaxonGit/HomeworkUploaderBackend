@@ -211,7 +211,8 @@ SIMPLE_JWT = {
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
-    "https://mars-homework.com/",
-    "http://mars-homework.com/"
+    "https://mars-homework.com",
+    "http://mars-homework.com",
+    "http://localhost:5173"
 ]
 CORS_ALLOW_CREDENTIALS = True
