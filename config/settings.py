@@ -265,10 +265,32 @@ SIMPLE_JWT = {
 }
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "https://mars-homework.com",
-    "http://mars-homework.com",
-    "http://localhost:5173"
-]
+# Read from environment variable, with fallback to defaults
+CORS_ALLOWED_ORIGINS_STR = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:5173,http://127.0.0.1:5173,https://mars-homework.com,http://mars-homework.com'
+)
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS_STR.split(',')]
 
 CORS_ALLOW_CREDENTIALS = True
+
+# Additional CORS settings for production
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# CSRF Trusted Origins for production (Django 4.0+)
+CSRF_TRUSTED_ORIGINS = [
+    'https://mars-homework.com',
+    'https://api.mars-homework.com',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
