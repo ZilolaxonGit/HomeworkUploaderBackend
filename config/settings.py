@@ -57,7 +57,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.gzip.GZIPMiddleware',  # Add GZIP compression
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,8 +109,36 @@ else:
             'PASSWORD': config('DB_PASSWORD'),
             'HOST': config('DB_HOST'),
             'PORT': config('DB_PORT'),
+            'CONN_MAX_AGE': 600,  # Keep connections alive for 10 minutes
+            'OPTIONS': {
+                'connect_timeout': 10,
+            },
         }
     }
+
+
+# Caching Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            'CONNECTION_POOL_KWARGS': {
+                'max_connections': 50,
+                'retry_on_timeout': True,
+            },
+            'SOCKET_CONNECT_TIMEOUT': 5,
+            'SOCKET_TIMEOUT': 5,
+        },
+        'KEY_PREFIX': 'mars_homework',
+        'TIMEOUT': 300,  # Default 5 minutes
+    }
+}
+
+# Session cache (optional but recommended)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 
 # Password validation
@@ -147,6 +177,11 @@ USE_TZ = True
 
 STATIC_URL = 'staticfiles/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# WhiteNoise configuration for efficient static file serving
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+WHITENOISE_COMPRESSION = True
+WHITENOISE_MAX_AGE = 31536000  # 1 year cache for static files
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -215,4 +250,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://mars-homework.com",
     "http://localhost:5173"
 ]
+
 CORS_ALLOW_CREDENTIALS = True

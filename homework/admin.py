@@ -7,7 +7,7 @@ class HomeworkAdmin(admin.ModelAdmin):
 
     list_display = ('student', 'lesson', 'status', 'has_submission', 'submitted_at', 'created_at')
     list_filter = ('status', 'submitted_at', 'created_at')
-    search_fields = ('student__student_id', 'lesson__title', 'description')
+    search_fields = ('student__user__username', 'lesson__title', 'description')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 

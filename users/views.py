@@ -77,12 +77,10 @@ def login_view(request):
     if user.is_student and hasattr(user, 'student_profile'):
         user_data['student_profile'] = {
             'id': user.student_profile.id,
-            'student_id': user.student_profile.student_id
         }
     elif user.is_teacher and hasattr(user, 'teacher_profile'):
         user_data['teacher_profile'] = {
             'id': user.teacher_profile.id,
-            'employee_id': user.teacher_profile.employee_id
         }
 
     return Response({

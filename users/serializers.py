@@ -8,7 +8,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'is_active', 'date_joined')
+        fields = ('id', 'username', 'first_name', 'last_name', 'role', 'is_active', 'date_joined')
         read_only_fields = ('id', 'date_joined')
 
 
@@ -19,13 +19,12 @@ class StudentSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     first_name = serializers.CharField(write_only=True, required=False)
     last_name = serializers.CharField(write_only=True, required=False)
-    email = serializers.EmailField(write_only=True, required=False)
     group_details = GroupMinimalSerializer(source='group', read_only=True)
 
     class Meta:
         model = Student
-        fields = ('id', 'user', 'student_id', 'group', 'group_details', 'phone', 'date_of_birth', 'address',
-                  'username', 'password', 'first_name', 'last_name', 'email',
+        fields = ('id', 'user', 'group', 'group_details', 'date_of_birth', 'address',
+                  'username', 'password', 'first_name', 'last_name',
                   'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at')
 
@@ -34,14 +33,12 @@ class StudentSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         first_name = validated_data.pop('first_name', '')
         last_name = validated_data.pop('last_name', '')
-        email = validated_data.pop('email', '')
 
         user = User.objects.create_user(
             username=username,
             password=password,
             first_name=first_name,
             last_name=last_name,
-            email=email,
             role=User.STUDENT
         )
 
@@ -53,7 +50,6 @@ class StudentSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password', None)
         first_name = validated_data.pop('first_name', None)
         last_name = validated_data.pop('last_name', None)
-        email = validated_data.pop('email', None)
 
         if username:
             instance.user.username = username
@@ -63,8 +59,6 @@ class StudentSerializer(serializers.ModelSerializer):
             instance.user.first_name = first_name
         if last_name is not None:
             instance.user.last_name = last_name
-        if email is not None:
-            instance.user.email = email
 
         instance.user.save()
 
@@ -82,12 +76,11 @@ class TeacherSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     first_name = serializers.CharField(write_only=True, required=False)
     last_name = serializers.CharField(write_only=True, required=False)
-    email = serializers.EmailField(write_only=True, required=False)
 
     class Meta:
         model = Teacher
-        fields = ('id', 'user', 'employee_id', 'phone', 'specialization', 'bio',
-                  'username', 'password', 'first_name', 'last_name', 'email',
+        fields = ('id', 'user', 'bio',
+                  'username', 'password', 'first_name', 'last_name',
                   'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at')
 
@@ -96,14 +89,12 @@ class TeacherSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password')
         first_name = validated_data.pop('first_name', '')
         last_name = validated_data.pop('last_name', '')
-        email = validated_data.pop('email', '')
 
         user = User.objects.create_user(
             username=username,
             password=password,
             first_name=first_name,
             last_name=last_name,
-            email=email,
             role=User.TEACHER
         )
 
@@ -115,7 +106,6 @@ class TeacherSerializer(serializers.ModelSerializer):
         password = validated_data.pop('password', None)
         first_name = validated_data.pop('first_name', None)
         last_name = validated_data.pop('last_name', None)
-        email = validated_data.pop('email', None)
 
         if username:
             instance.user.username = username
@@ -125,8 +115,6 @@ class TeacherSerializer(serializers.ModelSerializer):
             instance.user.first_name = first_name
         if last_name is not None:
             instance.user.last_name = last_name
-        if email is not None:
-            instance.user.email = email
 
         instance.user.save()
 

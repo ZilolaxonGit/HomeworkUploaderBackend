@@ -8,14 +8,14 @@ from .models import User, Student, Teacher
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
 
-    list_display = ('username', 'email', 'role', 'is_active', 'is_staff', 'date_joined')
+    list_display = ('username', 'role', 'is_active', 'is_staff', 'date_joined')
     list_filter = ('role', 'is_active', 'is_staff')
-    search_fields = ('username', 'email', 'first_name', 'last_name')
+    search_fields = ('username', 'first_name', 'last_name')
     ordering = ('-date_joined',)
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal Info', {'fields': ('first_name', 'last_name', 'email')}),
+        ('Personal Info', {'fields': ('first_name', 'last_name')}),
         ('Permissions', {'fields': ('role', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
@@ -35,11 +35,10 @@ class StudentCreationForm(forms.ModelForm):
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput, help_text='Enter the same password again.')
     first_name = forms.CharField(label='First Name', max_length=150, required=False)
     last_name = forms.CharField(label='Last Name', max_length=150, required=False)
-    email = forms.EmailField(label='Email', required=False)
 
     class Meta:
         model = Student
-        fields = ('student_id', 'phone', 'date_of_birth', 'address')
+        fields = ('date_of_birth', 'address')
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -54,7 +53,6 @@ class StudentCreationForm(forms.ModelForm):
             password=self.cleaned_data['password1'],
             first_name=self.cleaned_data.get('first_name', ''),
             last_name=self.cleaned_data.get('last_name', ''),
-            email=self.cleaned_data.get('email', ''),
             role=User.STUDENT
         )
 
@@ -74,7 +72,7 @@ class StudentChangeForm(forms.ModelForm):
 
     class Meta:
         model = Student
-        fields = ('user', 'student_id', 'phone', 'date_of_birth', 'address')
+        fields = ('user', 'date_of_birth', 'address')
 
 
 @admin.register(Student)
@@ -83,15 +81,15 @@ class StudentAdmin(admin.ModelAdmin):
     form = StudentChangeForm
     add_form = StudentCreationForm
 
-    list_display = ('student_id', 'get_username', 'get_full_name', 'phone', 'created_at')
+    list_display = ('get_username', 'get_full_name', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('student_id', 'user__username', 'user__first_name', 'user__last_name', 'phone')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
     fieldsets = (
         ('Student Information', {
-            'fields': ('user', 'student_id', 'phone', 'date_of_birth', 'address')
+            'fields': ('user', 'date_of_birth', 'address')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -102,11 +100,11 @@ class StudentAdmin(admin.ModelAdmin):
     add_fieldsets = (
         ('User Account', {
             'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'first_name', 'last_name', 'email'),
+            'fields': ('username', 'password1', 'password2', 'first_name', 'last_name'),
         }),
         ('Student Information', {
             'classes': ('wide',),
-            'fields': ('student_id', 'phone', 'date_of_birth', 'address'),
+            'fields': ('date_of_birth', 'address'),
         }),
     )
 
@@ -139,11 +137,10 @@ class TeacherCreationForm(forms.ModelForm):
     password2 = forms.CharField(label='Password confirmation', widget=forms.PasswordInput, help_text='Enter the same password again.')
     first_name = forms.CharField(label='First Name', max_length=150, required=False)
     last_name = forms.CharField(label='Last Name', max_length=150, required=False)
-    email = forms.EmailField(label='Email', required=False)
 
     class Meta:
         model = Teacher
-        fields = ('employee_id', 'phone', 'specialization', 'bio')
+        fields = ('bio',)
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -158,7 +155,6 @@ class TeacherCreationForm(forms.ModelForm):
             password=self.cleaned_data['password1'],
             first_name=self.cleaned_data.get('first_name', ''),
             last_name=self.cleaned_data.get('last_name', ''),
-            email=self.cleaned_data.get('email', ''),
             role=User.TEACHER
         )
 
@@ -178,7 +174,7 @@ class TeacherChangeForm(forms.ModelForm):
 
     class Meta:
         model = Teacher
-        fields = ('user', 'employee_id', 'phone', 'specialization', 'bio')
+        fields = ('user', 'bio')
 
 
 @admin.register(Teacher)
@@ -187,15 +183,15 @@ class TeacherAdmin(admin.ModelAdmin):
     form = TeacherChangeForm
     add_form = TeacherCreationForm
 
-    list_display = ('employee_id', 'get_username', 'get_full_name', 'phone', 'specialization', 'created_at')
+    list_display = ('get_username', 'get_full_name', 'created_at')
     list_filter = ('created_at',)
-    search_fields = ('employee_id', 'user__username', 'user__first_name', 'user__last_name', 'specialization')
+    search_fields = ('user__username', 'user__first_name', 'user__last_name')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'updated_at')
 
     fieldsets = (
         ('Teacher Information', {
-            'fields': ('user', 'employee_id', 'phone', 'specialization', 'bio')
+            'fields': ('user', 'bio')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -206,11 +202,11 @@ class TeacherAdmin(admin.ModelAdmin):
     add_fieldsets = (
         ('User Account', {
             'classes': ('wide',),
-            'fields': ('username', 'password1', 'password2', 'first_name', 'last_name', 'email'),
+            'fields': ('username', 'password1', 'password2', 'first_name', 'last_name'),
         }),
         ('Teacher Information', {
             'classes': ('wide',),
-            'fields': ('employee_id', 'phone', 'specialization', 'bio'),
+            'fields': ('bio',),
         }),
     )
 

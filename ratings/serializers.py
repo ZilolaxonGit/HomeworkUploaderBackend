@@ -30,7 +30,7 @@ class RatingSerializer(serializers.ModelSerializer):
         return {
             'id': obj.homework.id,
             'lesson_title': obj.homework.lesson.title,
-            'student_id': obj.homework.student.student_id
+            'student_username': obj.homework.student.user.username
         }
 
     def create(self, validated_data):
@@ -47,14 +47,14 @@ class RatingSerializer(serializers.ModelSerializer):
 
 class DailyLeaderboardSerializer(serializers.ModelSerializer):
 
-    student_id = serializers.CharField(source='student.student_id', read_only=True)
+    student_username = serializers.CharField(source='student.user.username', read_only=True)
     student_name = serializers.SerializerMethodField(read_only=True)
     student_details = serializers.SerializerMethodField(read_only=True)
     group_details = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = DailyLeaderboard
-        fields = ('id', 'student', 'student_id', 'student_name', 'student_details',
+        fields = ('id', 'student', 'student_username', 'student_name', 'student_details',
                   'group', 'group_details', 'date', 'average_score', 'rank',
                   'total_ratings', 'is_top_three')
         read_only_fields = ('id', 'is_top_three')

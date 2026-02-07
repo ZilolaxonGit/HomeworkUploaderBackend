@@ -35,7 +35,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
 
     username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(blank=True, null=True)
     first_name = models.CharField(max_length=150, blank=True)
     last_name = models.CharField(max_length=150, blank=True)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default=STUDENT)
@@ -80,7 +79,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Student(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
-    student_id = models.CharField(max_length=50, unique=True)
     group = models.ForeignKey(
         'groups.Group',
         on_delete=models.SET_NULL,
@@ -88,7 +86,6 @@ class Student(models.Model):
         blank=True,
         related_name='students'
     )
-    phone = models.CharField(max_length=20, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     address = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -100,15 +97,17 @@ class Student(models.Model):
         verbose_name_plural = 'Students'
 
     def __str__(self):
-        return f"{self.student_id} - {self.user.get_full_name()}"
+        return f"{self.user.username} - {self.user.get_full_name()}"
+
+    def delete(self, *args, **kwargs):
+        user = self.user
+        super().delete(*args, **kwargs)
+        user.delete()
 
 
 class Teacher(models.Model):
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher_profile')
-    employee_id = models.CharField(max_length=50, unique=True)
-    phone = models.CharField(max_length=20, blank=True)
-    specialization = models.CharField(max_length=200, blank=True)
     bio = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -119,4 +118,9 @@ class Teacher(models.Model):
         verbose_name_plural = 'Teachers'
 
     def __str__(self):
-        return f"{self.employee_id} - {self.user.get_full_name()}"
+        return f"{self.user.username} - {self.user.get_full_name()}"
+
+    def delete(self, *args, **kwargs):
+        user = self.user
+        super().delete(*args, **kwargs)
+        user.delete()

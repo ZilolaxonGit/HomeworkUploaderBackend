@@ -3,8 +3,10 @@ from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Sum
 from django.utils import timezone
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 from datetime import date, timedelta
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
@@ -129,6 +131,7 @@ class DailyLeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
 
         return queryset.order_by('rank')
 
+    @method_decorator(cache_page(60 * 5))  # Cache for 5 minutes
     @action(detail=False, methods=['get'])
     def today(self, request):
         """Get today's leaderboard."""
@@ -136,6 +139,7 @@ class DailyLeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(leaderboard, many=True)
         return Response(serializer.data)
 
+    @method_decorator(cache_page(60 * 5))  # Cache for 5 minutes
     @action(detail=False, methods=['get'])
     def top_three(self, request):
         """Get top 3 students from today's leaderboard."""
@@ -152,6 +156,7 @@ class DailyLeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
             OpenApiParameter(name='month', type=OpenApiTypes.INT, description='Month (1-12)'),
         ],
     )
+    @method_decorator(cache_page(60 * 10))  # Cache for 10 minutes
     @action(detail=False, methods=['get'])
     def monthly(self, request):
         """Get monthly leaderboard based on lessons created in that month.
@@ -232,24 +237,25 @@ class DailyLeaderboardViewSet(viewsets.ReadOnlyModelViewSet):
 
         students = students_query.select_related('user', 'group')
 
-        # Calculate scores for each student
+        # Calculate scores for each student using optimized query
+        # Get all ratings for countable lessons in ONE query with aggregation
+        ratings_for_month = Rating.objects.filter(
+            homework__lesson_id__in=countable_lesson_ids
+        ).values('student_id').annotate(
+            total_score=Sum('score'),
+            rated_count=Count('id')
+        )
+
+        # Create a dictionary for O(1) lookup
+        ratings_dict = {r['student_id']: r for r in ratings_for_month}
+
+        # Build student scores efficiently
         student_scores = []
-
         for student in students:
-            total_score = 0
-            rated_count = 0
+            rating_data = ratings_dict.get(student.id, {'total_score': 0, 'rated_count': 0})
 
-            for lesson_id in countable_lesson_ids:
-                # Check if student has a rating for this lesson
-                rating = Rating.objects.filter(
-                    student=student,
-                    homework__lesson_id=lesson_id
-                ).first()
-
-                if rating:
-                    total_score += rating.score
-                    rated_count += 1
-                # If no rating, score is 0 (already initialized)
+            total_score = rating_data['total_score'] or 0
+            rated_count = rating_data['rated_count'] or 0
 
             # Calculate average: total score / number of countable lessons
             avg_score = total_score / total_countable_lessons if total_countable_lessons > 0 else 0
@@ -367,8 +373,16 @@ def calculate_daily_leaderboard(request):
             total_ratings=Count('id')
         ).order_by('-avg_score')
 
+        # Prefetch all students in one query to avoid N+1
+        student_ids = [entry['student'] for entry in student_scores]
+        students_map = {
+            s.id: s for s in Student.objects.filter(
+                id__in=student_ids
+            ).select_related('user', 'group')
+        }
+
         for rank, entry in enumerate(student_scores, start=1):
-            student = Student.objects.get(id=entry['student'])
+            student = students_map[entry['student']]
             leaderboard_entry = DailyLeaderboard(
                 student=student,
                 group=group,

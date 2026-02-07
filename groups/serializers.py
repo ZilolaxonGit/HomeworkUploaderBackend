@@ -24,13 +24,11 @@ class GroupSerializer(serializers.ModelSerializer):
         if obj.teacher:
             return {
                 'id': obj.teacher.id,
-                'employee_id': obj.teacher.employee_id,
                 'user': {
                     'id': obj.teacher.user.id,
                     'username': obj.teacher.user.username,
                     'first_name': obj.teacher.user.first_name,
                     'last_name': obj.teacher.user.last_name,
-                    'email': obj.teacher.user.email,
                 }
             }
         return None

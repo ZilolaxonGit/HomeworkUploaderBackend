@@ -26,7 +26,7 @@ class Rating(models.Model):
         unique_together = ['homework', 'teacher']
 
     def __str__(self):
-        return f"{self.student.student_id} - {self.score}/10 by {self.teacher.employee_id}"
+        return f"{self.student.user.username} - {self.score}/10 by {self.teacher.user.username}"
 
 
 class DailyLeaderboard(models.Model):
@@ -53,7 +53,7 @@ class DailyLeaderboard(models.Model):
         unique_together = ['student', 'date', 'group']
 
     def __str__(self):
-        return f"{self.date} - Rank {self.rank}: {self.student.student_id} ({self.average_score})"
+        return f"{self.date} - Rank {self.rank}: {self.student.user.username} ({self.average_score})"
 
     @property
     def is_top_three(self):

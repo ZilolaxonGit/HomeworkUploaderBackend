@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from django.utils import timezone
+from django.db.models import Prefetch
 from .models import Lesson
 from .serializers import LessonSerializer, LessonListSerializer
 from users.permissions import IsAdmin, IsAdminOrTeacher
@@ -106,9 +107,16 @@ class LessonViewSet(viewsets.ModelViewSet):
 
         all_students = Student.objects.filter(group=lesson.group).select_related('user')
 
+        # Use Prefetch with to_attr for efficient rating access
         homework_submissions = Homework.objects.filter(lesson=lesson).select_related(
             'student', 'student__user'
-        ).prefetch_related('ratings')
+        ).prefetch_related(
+            Prefetch(
+                'ratings',
+                queryset=Rating.objects.select_related('teacher', 'teacher__user').order_by('-created_at'),
+                to_attr='rating_list'
+            )
+        )
 
         submissions_dict = {hw.student_id: hw for hw in homework_submissions}
 
@@ -119,7 +127,6 @@ class LessonViewSet(viewsets.ModelViewSet):
             homework = submissions_dict.get(student.id)
             student_data = {
                 'id': student.id,
-                'student_id': student.student_id,
                 'username': student.user.username,
                 'full_name': student.user.get_full_name() or student.user.username,
                 'first_name': student.user.first_name,
@@ -127,7 +134,7 @@ class LessonViewSet(viewsets.ModelViewSet):
             }
 
             if homework:
-                rating = homework.ratings.first()
+                rating = homework.rating_list[0] if homework.rating_list else None
                 student_data['homework_id'] = homework.id
                 student_data['submission_url'] = homework.submission_url
                 student_data['submission_file'] = request.build_absolute_uri(homework.submission_file.url) if homework.submission_file else None

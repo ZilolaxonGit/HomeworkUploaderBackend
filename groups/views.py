@@ -22,7 +22,7 @@ from users.models import Student, Teacher
 class GroupViewSet(viewsets.ModelViewSet):
 
     queryset = Group.objects.select_related('teacher', 'teacher__user').annotate(
-        student_total=Count('students')
+        student_count=Count('students')
     ).all()
     serializer_class = GroupSerializer
 
@@ -91,7 +91,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         student.save()
 
         return Response({
-            'message': f'Student {student.student_id} assigned to group {group.name}',
+            'message': f'Student {student.user.username} assigned to group {group.name}',
             'student_id': student.id,
             'group_id': group.id
         })
@@ -127,7 +127,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         student.save()
 
         return Response({
-            'message': f'Student {student.student_id} removed from group {group.name}',
+            'message': f'Student {student.user.username} removed from group {group.name}',
             'student_id': student.id
         })
 
@@ -164,7 +164,7 @@ class GroupViewSet(viewsets.ModelViewSet):
         group.save()
 
         return Response({
-            'message': f'Teacher {teacher.employee_id} assigned to group {group.name}',
+            'message': f'Teacher {teacher.user.username} assigned to group {group.name}',
             'teacher_id': teacher.id,
             'group_id': group.id
         })
@@ -185,7 +185,6 @@ class GroupViewSet(viewsets.ModelViewSet):
         for student in students:
             student_data.append({
                 'id': student.id,
-                'student_id': student.student_id,
                 'username': student.user.username,
                 'first_name': student.user.first_name,
                 'last_name': student.user.last_name,

@@ -7,7 +7,7 @@ class RatingAdmin(admin.ModelAdmin):
 
     list_display = ('student', 'homework', 'teacher', 'score', 'rating_date', 'created_at')
     list_filter = ('score', 'rating_date', 'created_at')
-    search_fields = ('student__student_id', 'teacher__employee_id', 'homework__lesson__title')
+    search_fields = ('student__user__username', 'teacher__user__username', 'homework__lesson__title')
     ordering = ('-created_at',)
     readonly_fields = ('rating_date', 'created_at', 'updated_at')
 
@@ -17,7 +17,7 @@ class DailyLeaderboardAdmin(admin.ModelAdmin):
 
     list_display = ('date', 'rank', 'student', 'average_score', 'total_ratings', 'is_top_three')
     list_filter = ('date', 'rank')
-    search_fields = ('student__student_id', 'student__user__username')
+    search_fields = ('student__user__username',)
     ordering = ('date', 'rank')
     date_hierarchy = 'date'
     readonly_fields = ('created_at',)
