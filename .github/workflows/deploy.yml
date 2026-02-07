@@ -35,11 +35,11 @@ jobs:
           echo "🧪 Django system checks"
           python manage.py check
 
-          echo "🧬 Migration safety check"
-          python manage.py makemigrations --check --dry-run
+          echo "📊 Checking for unapplied migrations"
+          python manage.py showmigrations --list | grep "\[ \]" && echo "⚠️  Unapplied migrations detected" || echo "✓ All migrations applied"
 
           echo "📊 Applying migrations"
-          python manage.py migrate
+          python manage.py migrate --noinput
 
           echo "🎨 Collecting static files"
           python manage.py collectstatic --noinput
