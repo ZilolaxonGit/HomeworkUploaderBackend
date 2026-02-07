@@ -118,47 +118,16 @@ else:
 
 
 # Caching Configuration
-# Try to use Redis if available, fall back to local memory cache if not
-REDIS_AVAILABLE = config('USE_REDIS', default='True', cast=bool)
-
-if REDIS_AVAILABLE:
-    try:
-        CACHES = {
-            'default': {
-                'BACKEND': 'django_redis.cache.RedisCache',
-                'LOCATION': config('REDIS_URL', default='redis://127.0.0.1:6379/1'),
-                'OPTIONS': {
-                    'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-                    'CONNECTION_POOL_KWARGS': {
-                        'max_connections': 50,
-                        'retry_on_timeout': True,
-                    },
-                    'SOCKET_CONNECT_TIMEOUT': 5,
-                    'SOCKET_TIMEOUT': 5,
-                },
-                'KEY_PREFIX': 'mars_homework',
-                'TIMEOUT': 300,  # Default 5 minutes
-            }
-        }
-        # Session cache (recommended with Redis)
-        SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-        SESSION_CACHE_ALIAS = 'default'
-    except Exception:
-        # Fall back to local memory cache if Redis connection fails
-        CACHES = {
-            'default': {
-                'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-                'LOCATION': 'mars-homework-cache',
-            }
-        }
-else:
-    # Use local memory cache if Redis is disabled
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'mars-homework-cache',
+# Using Django's built-in local memory cache (no Redis required)
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'mars-homework-cache',
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000,  # Maximum number of cache entries
         }
     }
+}
 
 
 # Password validation
