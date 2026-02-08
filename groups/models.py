@@ -24,8 +24,3 @@ class Group(models.Model):
 
     def __str__(self):
         return self.name
-
-    @property
-    def student_count(self):
-        """Return the number of students in this group."""
-        return self.students.count()
